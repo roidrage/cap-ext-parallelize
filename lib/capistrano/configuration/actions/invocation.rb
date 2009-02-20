@@ -15,20 +15,22 @@ module Capistrano
           end
         end
         
-        def parallelize
+        def parallelize(thread_count = nil)
           set :parallelize_thread_count, 10 unless respond_to?(:parallelize_thread_count)
           
           proxy = BlockProxy.new
           yield proxy
           
           batch = 1
-          logger.info "Running #{proxy.blocks.size} blocks in chunks of #{parallelize_thread_count}"
+          all_threads = []
+          logger.info "Running #{proxy.blocks.size} threads in chunks of #{thread_count || parallelize_thread_count}"
           
-          proxy.blocks.each_slice(parallelize_thread_count) do |chunk|
+          proxy.blocks.each_slice(thread_count || parallelize_thread_count) do |chunk|
             logger.info "Running batch number #{batch}"
             threads = run_in_threads(chunk)
+            all_threads << threads
             wait_for(threads)
-            rollback_all_threads(threads) and return if threads.any? {|t| t[:rolled_back]}
+            rollback_all_threads(all_threads.flatten) and return if threads.any? {|t| t[:rolled_back]}
             batch += 1
           end
         end
