@@ -16,16 +16,25 @@ module Capistrano
         end
         
         def parallelize
+          set :parallelize_thread_count, 10 unless respond_to?(:parallelize_thread_count)
+          
           proxy = BlockProxy.new
           yield proxy
           
-          threads = run_in_threads(proxy)
-          wait_for(threads)
-          rollback_all_threads(threads) if threads.any? {|t| t[:rolled_back]}
+          batch = 1
+          logger.info "Running #{proxy.blocks.size} blocks in chunks of #{parallelize_thread_count}"
+          
+          proxy.blocks.each_slice(parallelize_thread_count) do |chunk|
+            logger.info "Running batch number #{batch}"
+            threads = run_in_threads(chunk)
+            wait_for(threads)
+            rollback_all_threads(threads) and return if threads.any? {|t| t[:rolled_back]}
+            batch += 1
+          end
         end
         
-        def run_in_threads(proxy)
-          proxy.blocks.collect do |blk|
+        def run_in_threads(blocks)
+          blocks.collect do |blk|
             thread = Thread.new do
               logger.info "Running block in background thread"
               blk.call
@@ -55,6 +64,7 @@ module Capistrano
             end
           end.join
           rollback! # Rolling back main thread too
+          true
         end
         
       end

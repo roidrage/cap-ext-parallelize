@@ -28,6 +28,8 @@ module Capistrano
 
       alias :rollback_without_thread_local :rollback!
       def rollback!
+        return if Thread.current[:rollback_requests].nil?
+        
         Thread.current[:rolled_back] = true
         rollback_without_thread_local
       end
