@@ -21,11 +21,15 @@ module Capistrano
           proxy = BlockProxy.new
           yield proxy
           
-          batch = 1
-          all_threads = []
           logger.info "Running #{proxy.blocks.size} threads in chunks of #{thread_count || parallelize_thread_count}"
           
-          proxy.blocks.each_slice(thread_count || parallelize_thread_count) do |chunk|
+          run_parallelize_loop(proxy, thread_count || parallelize_thread_count)
+        end
+
+        def run_parallelize_loop(proxy, thread_count)
+          batch = 1
+          all_threads = []
+          proxy.blocks.each_slice(thread_count) do |chunk|
             logger.info "Running batch number #{batch}"
             threads = run_in_threads(chunk)
             all_threads << threads
