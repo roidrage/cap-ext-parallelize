@@ -34,7 +34,7 @@ module Capistrano
             threads = run_in_threads(chunk)
             all_threads << threads
             wait_for(threads)
-            rollback_all_threads(all_threads.flatten) and return if threads.any? {|t| t[:rolled_back]}
+            rollback_all_threads(all_threads.flatten) and return if threads.any? {|t| t[:rolled_back] || t[:exception_raised]}
             batch += 1
           end
         end
@@ -47,7 +47,9 @@ module Capistrano
             end
             begin
               thread.run
-            rescue ThreadError; end
+            rescue ThreadError
+              thread[:exception_raised] = $!
+            end
             thread
           end
         end
