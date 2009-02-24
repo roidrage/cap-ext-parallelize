@@ -13,11 +13,6 @@ module Capistrano
         Thread.current[:rollback_requests]
       end
       
-      def push_task_call_frame(task)
-        frame = TaskCallFrame.new(task)
-        task_call_frames.push frame
-      end
-      
       alias :transaction_without_thread_local :transaction
       def transaction
         transaction_without_thread_local do
