@@ -1,5 +1,3 @@
-$:.unshift(File.dirname(__FILE__))
-
-require 'lib/capistrano/configuration/actions/invocation'
-require 'lib/capistrano/configuration/connections'
-require 'lib/capistrano/configuration/execution'
+require "#{File.dirname(__FILE__)}/capistrano/configuration/actions/invocation"
+require "#{File.dirname(__FILE__)}/capistrano/configuration/connections"
+require "#{File.dirname(__FILE__)}/capistrano/configuration/execution"

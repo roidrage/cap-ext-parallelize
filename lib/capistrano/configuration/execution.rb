@@ -12,6 +12,12 @@ module Capistrano
       def rollback_requests
         Thread.current[:rollback_requests]
       end
+
+      def current_task
+        all_task_call_frames = Thread.main[:task_call_frames] + task_call_frames
+        return nil if all_task_call_frames.empty?
+        all_task_call_frames.last.task
+      end
       
       alias :transaction_without_thread_local :transaction
       def transaction
