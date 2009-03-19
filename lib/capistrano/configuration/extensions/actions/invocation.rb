@@ -60,6 +60,7 @@ module Capistrano
                 thread.join
               rescue
                 logger.important "Subthread failed: #{$!.message}"
+                thread[:exception_raised] = $!
               end
             end
           end

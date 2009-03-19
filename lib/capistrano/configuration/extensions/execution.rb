@@ -20,11 +20,20 @@ module Capistrano
           all_task_call_frames.last.task
         end
   
-        def transaction
+        def transaction?
+          !(rollback_requests.nil? && Thread.main[:rollback_requests].nil?)
+        end
+  
+        def transaction(&blk)
           super do
             self.rollback_requests = [] unless transaction?
-            yield
+            blk.call
           end
+        end
+
+        def on_rollback(&block)
+          self.rollback_requests ||= [] if transaction?
+          super
         end
 
         def rollback!

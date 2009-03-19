@@ -37,6 +37,14 @@ If one of your tasks ran in a transaction block and issued a rollback,
 parallelize will rollback all other threads, if they have rollback statements
 defined.
 
+Known Issues
+============
+
+Due to the threading you have to be sure to already have authenticated your SSH
+key (you're using SSH keys, right?) using an SSH agent before you run the
+parallelized code. Otherwise it'll blow up, let's just leave it at that. That'll
+change in the future.
+
 Installation
 ============
 
