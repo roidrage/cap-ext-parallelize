@@ -37,6 +37,7 @@ module Capistrano
               rollback_all_threads(all_threads.flatten) and return if threads.any? {|t| t[:rolled_back] || t[:exception_raised]}
               batch += 1
             end
+            all_threads
           end
       
           def run_in_threads(blocks)

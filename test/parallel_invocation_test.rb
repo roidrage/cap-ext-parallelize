@@ -5,6 +5,7 @@ require "#{File.join(File.dirname(__FILE__), '..', 'lib')}/cap_ext_parallelize"
 
 class ConfigurationActionsParallelInvocationTest < Test::Unit::TestCase
   class MockConfig
+    attr_reader :roles
     attr_reader :options
     attr_accessor :debug
     attr_accessor :dry_run
@@ -23,6 +24,7 @@ class ConfigurationActionsParallelInvocationTest < Test::Unit::TestCase
       @logger = options.delete(:logger)
       @options = {}
       @parallelize_thread_count = 10
+      @roles = {}
     end
 
     def [](*args)
@@ -41,10 +43,12 @@ class ConfigurationActionsParallelInvocationTest < Test::Unit::TestCase
     include Capistrano::Configuration::Actions::Invocation
     include Capistrano::Configuration::Extensions::Execution
     include Capistrano::Configuration::Extensions::Actions::Invocation
+    include Capistrano::Configuration::Servers
+    include Capistrano::Configuration::Connections
   end
 
   def setup
-    @config = MockConfig.new(:logger => stub(:debug => nil, :info => nil, :important => nil))
+    @config = MockConfig.new(:logger => stub(:debug => nil, :info => nil, :important => nil, :trace => nil))
     @original_io_proc = MockConfig.default_io_proc
   end
   
@@ -178,7 +182,7 @@ class ConfigurationActionsParallelInvocationTest < Test::Unit::TestCase
     assert @config.state[:rollback].include?(:second)
   end
 
-  def test_should_not_rollback_threads_twice
+  def test_should_rollback_main_thread_too
 
     eee = new_task(@config, :eee) do
       on_rollback {(state[:rollback] ||= []) << :second}
@@ -209,18 +213,65 @@ class ConfigurationActionsParallelInvocationTest < Test::Unit::TestCase
   end
   
   def test_should_run_each_run_block_in_separate_thread
+    bbb = new_task(@config, :bbb) do
+      # noop
+    end
+    
+    ccc = new_task(@config, :ccc) do
+      # noop
+    end
+    
+    @threads = []
     aaa = new_task(@config, :aaa) do
-      parallelize do |session|
+      return parallelize do |session|
         session.run {execute_task(bbb)}
-        session.run {execute_task(ddd)}
+        session.run {execute_task(ccc)}
       end
     end
+    @config.execute_task(aaa)
+    assert_equal 2, @threads.size
+    assert @threads.first.is_a?(Thread)
+    assert @threads.second.is_a?(Thread)
+  end
+  
+  def test_should_respect_roles_configured_in_the_calling_task
+    web_server = role(@config, :web, "my.host")
+    bgrnd_server = role(@config, :daemons, "my.other.host")
+
+    main = new_task(@config, :aaa, :roles => :web) do
+      parallelize do |session|
+        session.run {run 'echo hello'}
+      end
+    end
+    
+    @config.stubs(:connection_factory)
+    @config.expects(:establish_connection_to).with(web_server.first, []).returns(Thread.new {})
+    @config.execute_task(main)
+  end
+  
+  def test_should_rollback_when_main_thread_has_transaction_and_subthread_has_error
+    bbb = new_task(@config, :bbb) do
+      on_rollback {(state[:rollback] ||= []) << :second}
+      raise
+    end
+
+    aaa = new_task(@config, :aaa) do
+      transaction do
+        parallelize do |session|
+          session.run {execute_task(bbb)}
+        end
+      end
+    end
+    
+    @config.execute_task(aaa)
+    assert_equal 1, @config.state[:rollback].size
+    assert @config.state[:rollback].include?(:second)
   end
   
   private
   def new_task(namespace, name, options={}, &block)
     block ||= stack_inspector
-    namespace.tasks[name] = Capistrano::TaskDefinition.new(name, namespace, &block)
+    namespace.tasks[name] = Capistrano::TaskDefinition.new(name, namespace, options, &block)
   end
   
 end
