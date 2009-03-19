@@ -2,13 +2,13 @@
 
 Gem::Specification.new do |s|
   s.name = %q{cap-ext-parallelize}
-  s.version = "0.1.1"
+  s.version = "0.1.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mathias Meyer"]
   s.date = %q{2009-03-19}
   s.email = %q{meyer@paperplanes.de}
-  s.files = ["Rakefile", "README.md", "VERSION.yml", "lib/cap_ext_parallelize.rb", "lib/capistrano", "lib/capistrano/configuration", "lib/capistrano/configuration/extensions", "lib/capistrano/configuration/extensions/actions", "lib/capistrano/configuration/extensions/actions/extensions", "lib/capistrano/configuration/extensions/actions/invocation.rb", "lib/capistrano/configuration/extensions/connections.rb", "lib/capistrano/configuration/extensions/execution.rb", "test/parallel_invocation_test.rb", "test/utils.rb"]
+  s.files = ["Rakefile", "README.md", "VERSION.yml", "lib/cap_ext_parallelize.rb", "lib/capistrano", "lib/capistrano/configuration", "lib/capistrano/configuration/extensions", "lib/capistrano/configuration/extensions/actions", "lib/capistrano/configuration/extensions/actions/invocation.rb", "lib/capistrano/configuration/extensions/connections.rb", "lib/capistrano/configuration/extensions/execution.rb", "test/parallel_invocation_test.rb", "test/utils.rb"]
   s.has_rdoc = true
   s.homepage = %q{http://github.com/mattmatt/cap-ext-parallelize}
   s.rdoc_options = ["--inline-source", "--charset=UTF-8"]
