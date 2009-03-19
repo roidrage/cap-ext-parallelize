@@ -1,6 +1,7 @@
 module Capistrano
   class Configuration
     module Extensions
+      
       # Thread-safe(r) version of the Capistrano default
       # connection handling.
       module Connections
@@ -49,6 +50,7 @@ module Capistrano
           raise unless failures
           failures << { :server => server, :error => err }
         end
+        
       end
     end
   end

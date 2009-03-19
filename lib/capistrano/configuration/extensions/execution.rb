@@ -2,6 +2,7 @@ module Capistrano
   class Configuration
     module Extensions
       module Execution
+        
         def task_call_frames
           Thread.current[:task_call_frames] ||= []
         end
@@ -37,10 +38,11 @@ module Capistrano
         end
 
         def rollback!
-          return if Thread.current[:rollback_requests].nil?
-          Thread.current[:rolled_back] = true
+          return if rollback_requests.nil?
           super
+          Thread.current[:rolled_back] = true
         end
+        
       end
     end
   end

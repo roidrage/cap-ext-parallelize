@@ -3,6 +3,7 @@ module Capistrano
     module Extensions
       module Actions
         module Invocation
+
           class BlockProxy
             attr_accessor :blocks
         
@@ -22,7 +23,6 @@ module Capistrano
             yield proxy
         
             logger.info "Running #{proxy.blocks.size} threads in chunks of #{thread_count || parallelize_thread_count}"
-        
             run_parallelize_loop(proxy, thread_count || parallelize_thread_count)
           end
 
