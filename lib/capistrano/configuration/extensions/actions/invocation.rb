@@ -1,4 +1,7 @@
 module Capistrano
+
+  ParallelError  = Class.new(Capistrano::Error)
+  
   class Configuration
     module Extensions
       module Actions
@@ -34,7 +37,7 @@ module Capistrano
               threads = run_in_threads(chunk)
               all_threads << threads
               wait_for(threads)
-              rollback_all_threads(all_threads.flatten) and return if threads.any? {|t| t[:rolled_back] || t[:exception_raised]}
+              rollback_all_threads(all_threads.flatten) and raise ParallelError.new("Subthread failed in parallel running, rolled back.") if threads.any? {|t| t[:rolled_back] || t[:exception_raised]}
               batch += 1
             end
             all_threads
